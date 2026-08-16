@@ -1,3 +1,13 @@
+# Group Member
+
+| Name | Student Id |
+|---|:---:|
+| Ankur Gupta | 20252651008 |
+| Kartik Karnwal | 20252651028 |
+| Kirti Gautam | 20252651029 |
+| Pintu | 20252651038 |
+
+
 # Assignments in This Submission
 
 This submission bundles three separate tasks:
