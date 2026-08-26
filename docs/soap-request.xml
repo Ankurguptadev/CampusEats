@@ -1,0 +1,13 @@
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+              xmlns:tr="urn:textrelay">
+  <soap:Header>
+    <tr:auth token="CE-NOTIFY-KEY"/>
+  </soap:Header>
+  <soap:Body>
+    <tr:sendSMS>
+      <userId>stu_555</userId>
+      <type>order_placed</type>
+      <message>Your CampusEats order #ord_5555 has been placed.</message>
+    </tr:sendSMS>
+  </soap:Body>
+</soap:Envelope>

@@ -1,0 +1,9 @@
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+              xmlns:tr="urn:textrelay">
+  <soap:Body>
+    <tr:sendSMSResult>
+      <messageId>msg_5555</messageId>
+      <status>sent</status>
+    </tr:sendSMSResult>
+  </soap:Body>
+</soap:Envelope>

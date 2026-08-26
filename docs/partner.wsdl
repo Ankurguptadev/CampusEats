@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="NotificationsService"
+             targetNamespace="urn:campuseats:notifications"
+             xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:tr="urn:textrelay"
+             xmlns:tns="urn:campuseats:notifications">
+
+  <types>
+    <xsd:schema targetNamespace="urn:textrelay"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+      <xsd:element name="sendSMS">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="userId" type="xsd:string"/>
+            <xsd:element name="type" type="xsd:string"/>
+            <xsd:element name="message" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="sendSMSResult">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="messageId" type="xsd:string"/>
+            <xsd:element name="status" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+    </xsd:schema>
+  </types>
+
+  <message name="sendSMSRequest">
+    <part name="body" element="tr:sendSMS"/>
+  </message>
+
+  <message name="sendSMSResponse">
+    <part name="body" element="tr:sendSMSResult"/>
+  </message>
+
+  <portType name="Notifications">
+    <operation name="sendSMS">
+      <input message="tns:sendSMSRequest"/>
+      <output message="tns:sendSMSResponse"/>
+    </operation>
+  </portType>
+
+  <binding name="NotificationsSOAP" type="tns:Notifications">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+    <operation name="sendSMS">
+      <soap:operation soapAction="urn:textrelay:sendSMS"/>
+      <input>
+        <soap:body use="literal"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+      </output>
+    </operation>
+  </binding>
+
+  <service name="NotificationsService">
+    <port name="NotificationsSOAP" binding="tns:NotificationsSOAP">
+      <soap:address location="https://api.textrelay.example/sms"/>
+    </port>
+  </service>
+
+</definitions>
