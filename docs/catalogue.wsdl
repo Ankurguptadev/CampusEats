@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Part A2 starting point: if Catalogue had been published as SOAP (the way
+  Assignment 3 did for an external partner), this is what its own WSDL
+  would have looked like. Five operations, in the style of PaymentsService.wsdl
+  from Tutorial 3/4. This is NOT implemented — it exists only so Task A2-A3
+  have something concrete to walk away from, and so NOTES.md Q1 can compare
+  real line counts against openapi.yaml.
+-->
+<definitions name="CatalogueService"
+             targetNamespace="urn:campuseats:catalogue"
+             xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:cat="urn:campuseats:catalogue"
+             xmlns:tns="urn:campuseats:catalogue">
+
+  <types>
+    <xsd:schema targetNamespace="urn:campuseats:catalogue"
+                xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+      <xsd:element name="listRestaurantsRequest">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="area" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+      <xsd:element name="listRestaurantsResponse">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="restaurant" type="cat:RestaurantType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="getMenuRequest">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="restaurantId" type="xsd:int"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+      <xsd:element name="getMenuResponse">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="item" type="cat:MenuItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="checkItemRequest">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="itemId" type="xsd:int"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+      <xsd:element name="checkItemResponse">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="available" type="xsd:boolean"/>
+          <xsd:element name="price" type="xsd:decimal"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="addMenuItemRequest">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="restaurantId" type="xsd:int"/>
+          <xsd:element name="name" type="xsd:string"/>
+          <xsd:element name="price" type="xsd:decimal"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+      <xsd:element name="addMenuItemResponse">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="itemId" type="xsd:int"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="setAvailabilityRequest">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="itemId" type="xsd:int"/>
+          <xsd:element name="available" type="xsd:boolean"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+      <xsd:element name="setAvailabilityResponse">
+        <xsd:complexType><xsd:sequence>
+          <xsd:element name="status" type="xsd:string"/>
+        </xsd:sequence></xsd:complexType>
+      </xsd:element>
+
+      <xsd:complexType name="RestaurantType">
+        <xsd:sequence>
+          <xsd:element name="id" type="xsd:int"/>
+          <xsd:element name="name" type="xsd:string"/>
+          <xsd:element name="area" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="MenuItemType">
+        <xsd:sequence>
+          <xsd:element name="id" type="xsd:int"/>
+          <xsd:element name="name" type="xsd:string"/>
+          <xsd:element name="price" type="xsd:decimal"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+    </xsd:schema>
+  </types>
+
+  <message name="listRestaurantsRequest"><part name="body" element="cat:listRestaurantsRequest"/></message>
+  <message name="listRestaurantsResponse"><part name="body" element="cat:listRestaurantsResponse"/></message>
+  <message name="getMenuRequest"><part name="body" element="cat:getMenuRequest"/></message>
+  <message name="getMenuResponse"><part name="body" element="cat:getMenuResponse"/></message>
+  <message name="checkItemRequest"><part name="body" element="cat:checkItemRequest"/></message>
+  <message name="checkItemResponse"><part name="body" element="cat:checkItemResponse"/></message>
+  <message name="addMenuItemRequest"><part name="body" element="cat:addMenuItemRequest"/></message>
+  <message name="addMenuItemResponse"><part name="body" element="cat:addMenuItemResponse"/></message>
+  <message name="setAvailabilityRequest"><part name="body" element="cat:setAvailabilityRequest"/></message>
+  <message name="setAvailabilityResponse"><part name="body" element="cat:setAvailabilityResponse"/></message>
+
+  <portType name="Catalogue">
+    <operation name="listRestaurants">
+      <input message="tns:listRestaurantsRequest"/>
+      <output message="tns:listRestaurantsResponse"/>
+    </operation>
+    <operation name="getMenu">
+      <input message="tns:getMenuRequest"/>
+      <output message="tns:getMenuResponse"/>
+    </operation>
+    <operation name="checkItem">
+      <input message="tns:checkItemRequest"/>
+      <output message="tns:checkItemResponse"/>
+      <fault name="notFound" message="tns:checkItemResponse"/>
+    </operation>
+    <operation name="addMenuItem">
+      <input message="tns:addMenuItemRequest"/>
+      <output message="tns:addMenuItemResponse"/>
+      <fault name="restaurantNotFound" message="tns:addMenuItemResponse"/>
+      <fault name="duplicateItem" message="tns:addMenuItemResponse"/>
+    </operation>
+    <operation name="setAvailability">
+      <input message="tns:setAvailabilityRequest"/>
+      <output message="tns:setAvailabilityResponse"/>
+      <fault name="itemNotFound" message="tns:setAvailabilityResponse"/>
+      <fault name="restaurantInactive" message="tns:setAvailabilityResponse"/>
+    </operation>
+  </portType>
+
+  <binding name="CatalogueSOAP" type="tns:Catalogue">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+    <operation name="listRestaurants">
+      <soap:operation soapAction="urn:campuseats:catalogue/listRestaurants"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+    <operation name="getMenu">
+      <soap:operation soapAction="urn:campuseats:catalogue/getMenu"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+    <operation name="checkItem">
+      <soap:operation soapAction="urn:campuseats:catalogue/checkItem"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+    <operation name="addMenuItem">
+      <soap:operation soapAction="urn:campuseats:catalogue/addMenuItem"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+    <operation name="setAvailability">
+      <soap:operation soapAction="urn:campuseats:catalogue/setAvailability"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+  </binding>
+
+  <service name="CatalogueService">
+    <port name="CatalogueSOAP" binding="tns:CatalogueSOAP">
+      <soap:address location="https://catalogue.campuseats.internal/soap"/>
+    </port>
+  </service>
+
+</definitions>

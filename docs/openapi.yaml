@@ -1,0 +1,208 @@
+openapi: 3.0.3
+info:
+  title: CampusEats Catalogue
+  version: "1.0.0"
+  description: Manages restaurants, their menu items, and item availability.
+servers:
+  - url: http://localhost:8080
+  - url: https://api.campuseats.dev
+
+paths:
+  /restaurants:
+    get:
+      summary: List restaurants, optionally filtered by area
+      parameters:
+        - in: query
+          name: area
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: A list of restaurants
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Restaurant" }
+        "400":
+          description: area was present but blank
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+
+  /restaurants/{restaurantId}/menu-items:
+    get:
+      summary: Get a restaurant's menu
+      parameters:
+        - in: path
+          name: restaurantId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Menu items for this restaurant
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MenuItem" }
+        "404":
+          description: Restaurant not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+    post:
+      summary: Add a menu item to a restaurant
+      parameters:
+        - in: path
+          name: restaurantId
+          required: true
+          schema: { type: integer }
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewMenuItem" }
+      responses:
+        "201":
+          description: Menu item created
+          headers:
+            Location:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuItem" }
+        "200":
+          description: Same Idempotency-Key seen before — original item returned
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuItem" }
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+        "404":
+          description: Restaurant not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+        "409":
+          description: A menu item with this name already exists on this menu
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+        "422":
+          description: Price exceeds the restaurant's tier cap
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+
+  /menu-items/{id}:
+    get:
+      summary: Read one menu item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: The menu item
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuItem" }
+        "404":
+          description: Menu item not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+
+  /menu-items/{id}/availability:
+    post:
+      summary: Change a menu item's availability
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AvailabilityUpdate" }
+      responses:
+        "200":
+          description: Availability updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MenuItem" }
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+        "404":
+          description: Menu item not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+        "409":
+          description: Restaurant is inactive; cannot mark an item available
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Problem" }
+
+components:
+  schemas:
+    Restaurant:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        area: { type: string }
+        tier: { type: string, enum: [budget, premium] }
+        active: { type: boolean }
+
+    NewMenuItem:
+      type: object
+      required: [name, price]
+      properties:
+        name: { type: string }
+        price:
+          type: integer
+          minimum: 1
+          description: price in paise, integer only
+
+    MenuItem:
+      type: object
+      properties:
+        id: { type: integer }
+        restaurantId: { type: integer }
+        name: { type: string }
+        price: { type: integer }
+        available: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    AvailabilityUpdate:
+      type: object
+      required: [available]
+      properties:
+        available: { type: boolean }
+
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errors:
+          type: array
+          items:
+            type: array
+            items: { type: string }

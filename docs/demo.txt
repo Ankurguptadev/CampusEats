@@ -1,0 +1,12 @@
+time curl -i -s -X POST localhost:8080/restaurants/2/menu-items \
+    -H 'Content-Type: application/json' -d '{"name":"Salmon Nigiri","price":15000}'
+HTTP/1.1 201 CREATED
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 08 Sep 2026 14:48:22 GMT
+Content-Type: application/json
+Content-Length: 127
+Location: /menu-items/3
+Connection: close
+
+{"available":true,"createdAt":"2026-09-08T14:48:22.813777+00:00","id":3,"name":"Salmon Nigiri","price":15000,"restaurantId":2}
+curl -i -s -X POST localhost:8080/restaurants/2/menu-items -H  -d   0.00s user 0.00s system 0% cpu 4.891 total
