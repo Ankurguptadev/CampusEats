@@ -2,323 +2,457 @@
 API CALLS AND RESPONSES
 ============================================================
 
-### 1. List restaurants filtered by area
+### 1. API health check
 
-$ curl -i "http://localhost:8080/restaurants?area=North%20Campus"
+$ curl http://localhost:8080/
 
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:50:38 GMT
-Content-Type: application/json
-Content-Length: 167
-Connection: close
-
-[{"active":true,"area":"North Campus","id":1,"name":"Curry Point","tier":"budget"},{"active":false,"area":"North Campus","id":3,"name":"Old Kitchen","tier":"budget"}]
+{"message":"Restaurant API is running!"}
 
 
-### 2. Successful create - 201 with Location header
+### 2. List all restaurants
 
-$ curl -i -X POST "http://localhost:8080/restaurants/1/menu-items" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: paneer-wrap-001" \
-  -d '{
-    "name": "Paneer Wrap",
-    "price": 12000
-  }'
-
-HTTP/1.1 201 CREATED
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:50:49 GMT
-Content-Type: application/json
-Content-Length: 125
-Location: /menu-items/4
-Connection: close
-
-{"available":true,"createdAt":"2026-09-08T14:50:49.736174+00:00","id":4,"name":"Paneer Wrap","price":12000,"restaurantId":1}
-
-
-### 3. Same request repeated with same Idempotency-Key - 200
-
-$ curl -i -X POST "http://localhost:8080/restaurants/1/menu-items" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: paneer-wrap-001" \
-  -d '{
-    "name": "Paneer Wrap",
-    "price": 12000
-  }'
-
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:51:01 GMT
-Content-Type: application/json
-Content-Length: 125
-Connection: close
-
-{"available":true,"createdAt":"2026-09-08T14:50:49.736174+00:00","id":4,"name":"Paneer Wrap","price":12000,"restaurantId":1}
-
-
-### 4. Malformed body rejected - 400
-
-$ curl -i -X POST "http://localhost:8080/restaurants/1/menu-items" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Paneer Wrap"
-  }'
-
-HTTP/1.1 400 BAD REQUEST
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:51:16 GMT
-Content-Type: application/json
-Content-Length: 136
-Connection: close
-
-{"detail":"","errors":[["price","positive integer, in paise"]],"status":400,"title":"Invalid request","type":"/errors/invalid-request"}
-
-
-### 5. Missing resource - 404 (unknown menu item)
-
-$ curl -i "http://localhost:8080/menu-items/55"
-
-HTTP/1.1 404 NOT FOUND
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:51:34 GMT
-Content-Type: application/json
-Content-Length: 104
-Connection: close
-
-{"detail":"No menu item 55","status":404,"title":"Menu item not found","type":"/errors/item-not-found"}
-
-
-### 6. Missing resource - 404 (unknown restaurant)
-
-$ curl -i "http://localhost:8080/restaurants/555/menu-items"
-
-HTTP/1.1 404 NOT FOUND
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:51:54 GMT
-Content-Type: application/json
-Content-Length: 113
-Connection: close
-
-{"detail":"No restaurant 555","status":404,"title":"Restaurant not found","type":"/errors/restaurant-not-found"}
-
-
-### 7. Duplicate item name on same menu - 409
-
-$ curl -i -X POST "http://localhost:8080/restaurants/1/menu-items" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: paneer-wrap-002" \
-  -d '{
-    "name": "Paneer Wrap",
-    "price": 12000
-  }'
-
-HTTP/1.1 409 CONFLICT
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:52:06 GMT
-Content-Type: application/json
-Content-Length: 126
-Connection: close
-
-{"detail":"Paneer Wrap already on this menu","status":409,"title":"Menu item already exists","type":"/errors/duplicate-item"}
-
-
-### 8. Price exceeds tier cap - 422
-
-$ curl -i -X POST "http://localhost:8080/restaurants/1/menu-items" \
-  -H "Content-Type: application/json" \
-  -H "Idempotency-Key: expensive-item-001" \
-  -d '{
-    "name": "Premium Thali",
-    "price": 60000
-  }'
-
-HTTP/1.1 422 UNPROCESSABLE ENTITY
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:52:36 GMT
-Content-Type: application/json
-Content-Length: 120
-Connection: close
-
-{"detail":"budget cap is 50000 paise","status":422,"title":"Price exceeds tier cap","type":"/errors/price-exceeds-cap"}
-
-
-### 9. Get menu for a restaurant
-
-$ curl -i "http://localhost:8080/restaurants/1/menu-items"
-
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:52:55 GMT
-Content-Type: application/json
-Content-Length: 374
-Connection: close
-
-[{"available":true,"createdAt":"2026-09-08T14:43:48.094071+00:00","id":1,"name":"Veg Thali","price":8000,"restaurantId":1},{"available":false,"createdAt":"2026-09-08T14:43:48.094181+00:00","id":2,"name":"Cold Coffee","price":6000,"restaurantId":1},{"available":true,"createdAt":"2026-09-08T14:50:49.736174+00:00","id":4,"name":"Paneer Wrap","price":12000,"restaurantId":1}]
-
-
-### 10. Set availability for item 1 - success 200
-
-$ curl -i -X POST "http://localhost:8080/menu-items/1/availability" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "available": false
-  }'
-
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:53:12 GMT
-Content-Type: application/json
-Content-Length: 123
-Connection: close
-
-{"available":false,"createdAt":"2026-09-08T14:43:48.094071+00:00","id":1,"name":"Veg Thali","price":8000,"restaurantId":1}
-
-
-### 11. Set availability for item 3 - success 200
-
-$ curl -i -X POST "http://localhost:8080/menu-items/3/availability" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "available": true
-  }'
-
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:54:02 GMT
-Content-Type: application/json
-Content-Length: 127
-Connection: close
-
-{"available":true,"createdAt":"2026-09-08T14:48:22.813777+00:00","id":3,"name":"Salmon Nigiri","price":15000,"restaurantId":2}
-
-
-### 12. Set availability for item 2 - success 200
-
-$ curl -i -X POST "http://localhost:8080/menu-items/2/availability" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "available": true
-  }'
-
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:54:50 GMT
-Content-Type: application/json
-Content-Length: 124
-Connection: close
-
-{"available":true,"createdAt":"2026-09-08T14:43:48.094181+00:00","id":2,"name":"Cold Coffee","price":6000,"restaurantId":1}
-
-
-### 13. List all restaurants
-
-$ curl -i http://localhost:8080/restaurants
-
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:56:22 GMT
-Content-Type: application/json
-Content-Length: 252
-Connection: close
+$ curl "http://localhost:8080/restaurants"
 
 [{"active":true,"area":"North Campus","id":1,"name":"Curry Point","tier":"budget"},{"active":true,"area":"South Campus","id":2,"name":"Sushi Central","tier":"premium"},{"active":false,"area":"North Campus","id":3,"name":"Old Kitchen","tier":"budget"}]
 
 
-### 14. Get menu item 2
+### 3. List restaurants filtered, paginated and sorted
 
-$ curl -i "http://localhost:8080/menu-items/2"
+$ curl "http://localhost:8080/restaurants?area=North%20Campus&page=1&limit=10&sort=name&order=asc"
 
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 14:59:26 GMT
-Content-Type: application/json
-Content-Length: 124
-Connection: close
-
-{"available":true,"createdAt":"2026-09-08T14:43:48.094181+00:00","id":2,"name":"Cold Coffee","price":6000,"restaurantId":1}
+[{"active":true,"area":"North Campus","id":1,"name":"Curry Point","tier":"budget"},{"active":false,"area":"North Campus","id":3,"name":"Old Kitchen","tier":"budget"}]
 
 
-### 15. Get menu for inactive restaurant 3 - initially empty
+### 4. Get menu for restaurant 1
 
-$ curl -i "http://localhost:8080/restaurants/3/menu-items"
+$ curl http://localhost:8080/restaurants/1/menu-items
 
-HTTP/1.1 200 OK
-Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 15:00:23 GMT
-Content-Type: application/json
-Content-Length: 3
-Connection: close
-
-[]
+[{"available":true,"createdAt":"2026-09-22T18:23:51.180815+00:00","id":1,"name":"Veg Thali","price":8000,"restaurantId":1},{"available":false,"createdAt":"2026-09-22T18:23:51.180931+00:00","id":2,"name":"Cold Coffee","price":6000,"restaurantId":1}]
 
 
-### 16. Add menu item to inactive restaurant 3
+### 5. Get menu with pagination and sorting
 
-$ curl -i -X POST "http://localhost:8080/restaurants/3/menu-items" \
+$ curl "http://localhost:8080/restaurants/1/menu-items?page=1&limit=10&sort=name&order=asc"
+
+[{"available":false,"createdAt":"2026-09-22T18:23:51.180931+00:00","id":2,"name":"Cold Coffee","price":6000,"restaurantId":1},{"available":true,"createdAt":"2026-09-22T18:23:51.180815+00:00","id":1,"name":"Veg Thali","price":8000,"restaurantId":1}]
+
+
+### 6. Unauthorized create - 401
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
   -H "Content-Type: application/json" \
-  -H "Idempotency-Key: old-kitchen-item-001" \
-  -d '{
-    "name": "Veg Thali",
-    "price": 15000
-  }'
+  -d '{"name":"Tea","price":1000}'
+
+HTTP/1.1 401 UNAUTHORIZED
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:35:27 GMT
+Content-Type: application/json
+Content-Length: 121
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 5
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
+Connection: close
+
+{"detail":"Authorization: Bearer <token> is required","status":401,"title":"Unauthorized","type":"/errors/unauthorized"}
+
+
+### 7. Successful create - 201 with Location header
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"name":"Tea","price":1000}'
 
 HTTP/1.1 201 CREATED
 Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 15:03:14 GMT
+Date: Tue, 22 Sep 2026 18:35:37 GMT
 Content-Type: application/json
-Content-Length: 123
+Content-Length: 116
+Location: /menu-items/3
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 9
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
+Connection: close
+
+{"available":true,"createdAt":"2026-09-22T18:35:37.846886+00:00","id":3,"name":"Tea","price":1000,"restaurantId":1}
+
+
+### 8. First idempotent create - 201
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Idempotency-Key: mac-a5-test-001" \
+  -d '{"name":"Idempotency Test","price":1500}'
+
+HTTP/1.1 201 CREATED
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:36:01 GMT
+Content-Type: application/json
+Content-Length: 129
+Location: /menu-items/4
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 8
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
+Connection: close
+
+{"available":true,"createdAt":"2026-09-22T18:36:01.390443+00:00","id":4,"name":"Idempotency Test","price":1500,"restaurantId":1}
+
+
+### 9. Same request repeated with same Idempotency-Key - 200
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Idempotency-Key: mac-a5-test-001" \
+  -d '{"name":"Idempotency Test","price":1500}'
+
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:36:07 GMT
+Content-Type: application/json
+Content-Length: 129
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 7
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
+Connection: close
+
+{"available":true,"createdAt":"2026-09-22T18:36:01.390443+00:00","id":4,"name":"Idempotency Test","price":1500,"restaurantId":1}
+
+
+### 10. Get menu item - ETag returned
+
+$ curl -i http://localhost:8080/menu-items/1
+
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:36:13 GMT
+Content-Type: application/json
+Content-Length: 122
+ETag: "635c21fb28cc8498"
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 5
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: public, max-age=60
+Connection: close
+
+{"available":true,"createdAt":"2026-09-22T18:23:51.180815+00:00","id":1,"name":"Veg Thali","price":8000,"restaurantId":1}
+
+
+### 11. Conditional GET with incorrect ETag - 200
+
+$ curl -i http://localhost:8080/menu-items/1 \
+  -H 'If-None-Match: "abc123"'
+
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:36:25 GMT
+Content-Type: application/json
+Content-Length: 122
+ETag: "635c21fb28cc8498"
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 5
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: public, max-age=60
+Connection: close
+
+{"available":true,"createdAt":"2026-09-22T18:23:51.180815+00:00","id":1,"name":"Veg Thali","price":8000,"restaurantId":1}
+
+
+### 12. Stale If-Match update - 412
+
+$ curl -i -X PATCH http://localhost:8080/menu-items/1 \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -H 'If-Match: "wrong-etag"' \
+  -d '{"price":9000}'
+
+HTTP/1.1 412 PRECONDITION FAILED
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:36:51 GMT
+Content-Type: application/json
+Content-Length: 134
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 6
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
+Connection: close
+
+{"detail":"If-Match does not match the current ETag","status":412,"title":"Precondition Failed","type":"/errors/precondition-failed"}
+
+
+### 13. PUT update - 200
+
+$ curl -i -X PUT http://localhost:8080/menu-items/1 \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -H 'If-Match: "635c21fb28cc8498"' \
+  -d '{"name":"Updated Tea","price":2000}'
+
+HTTP/1.1 200 OK
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:39:27 GMT
+Content-Type: application/json
+Content-Length: 124
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 3
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
+Connection: close
+
+{"available":true,"createdAt":"2026-09-22T18:23:51.180815+00:00","id":1,"name":"Updated Tea","price":2000,"restaurantId":1}
+
+
+### 14. Create temporary item for DELETE - 201
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: mac-delete-test-001" \
+  -d '{"name":"Delete Test","price":1000}'
+
+HTTP/1.1 201 CREATED
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:40:16 GMT
+Content-Type: application/json
+Content-Length: 124
 Location: /menu-items/5
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 2
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
 Connection: close
 
-{"available":true,"createdAt":"2026-09-08T15:03:14.334422+00:00","id":5,"name":"Veg Thali","price":15000,"restaurantId":3}
+{"available":true,"createdAt":"2026-09-22T18:40:16.111405+00:00","id":5,"name":"Delete Test","price":1000,"restaurantId":1}
 
 
-### 17. Verify menu for inactive restaurant 3
+### 15. DELETE menu item - 204
 
-$ curl -i "http://localhost:8080/restaurants/3/menu-items"
+$ curl -i -X DELETE http://localhost:8080/menu-items/5 \
+  -H "Authorization: Bearer test-token"
 
-HTTP/1.1 200 OK
+HTTP/1.1 204 NO CONTENT
 Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 15:03:21 GMT
-Content-Type: application/json
-Content-Length: 125
+Date: Tue, 22 Sep 2026 18:40:23 GMT
+Content-Type: text/html; charset=utf-8
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 1
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
 Connection: close
 
-[{"available":true,"createdAt":"2026-09-08T15:03:14.334422+00:00","id":5,"name":"Veg Thali","price":15000,"restaurantId":3}]
+
+### 16. OPTIONS request - Allow header and CORS
+
+$ curl -i -X OPTIONS http://localhost:8080/menu-items/1
+
+HTTP/1.1 204 NO CONTENT
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:40:36 GMT
+Content-Type: text/html; charset=utf-8
+Allow: GET, PUT, PATCH, DELETE, OPTIONS
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 5
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: public, max-age=60
+Connection: close
 
 
-### 18. Availability on item 3 (restaurant 2) - success 200
+### 17. CORS preflight - OPTIONS
 
-$ curl -i -X POST "http://localhost:8080/menu-items/3/availability" \
+$ curl -i -X OPTIONS http://localhost:8080/menu-items/1 \
+  -H "Origin: http://localhost:3000" \
+  -H "Access-Control-Request-Method: PATCH" \
+  -H "Access-Control-Request-Headers: Authorization, Content-Type"
+
+HTTP/1.1 204 NO CONTENT
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:41:06 GMT
+Content-Type: text/html; charset=utf-8
+Allow: GET, PUT, PATCH, DELETE, OPTIONS
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 5
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: public, max-age=60
+Connection: close
+
+
+### 18. Invalid price - 400
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
   -H "Content-Type: application/json" \
-  -d '{
-    "available": true
-  }'
+  -d '{"name":"Bad Item","price":-5}'
 
-HTTP/1.1 200 OK
+HTTP/1.1 400 BAD REQUEST
 Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 15:03:34 GMT
+Date: Tue, 22 Sep 2026 18:46:07 GMT
 Content-Type: application/json
-Content-Length: 127
+Content-Length: 136
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 9
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
 Connection: close
 
-{"available":true,"createdAt":"2026-09-08T14:48:22.813777+00:00","id":3,"name":"Salmon Nigiri","price":15000,"restaurantId":2}
+{"detail":"","errors":[["price","positive integer, in paise"]],"status":400,"title":"Invalid Request","type":"/errors/invalid-request"}
 
 
-### 19. Availability on item 5 (restaurant 3 inactive) - expected 409
+### 19. Price exceeds tier cap - 422
 
-$ curl -i -X POST "http://localhost:8080/menu-items/5/availability" \
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
   -H "Content-Type: application/json" \
-  -d '{
-    "available": true
-  }'
+  -d '{"name":"Gold Thali","price":999999}'
 
-HTTP/1.1 409 CONFLICT
+HTTP/1.1 422 UNPROCESSABLE ENTITY
 Server: Werkzeug/3.1.8 Python/3.14.6
-Date: Tue, 08 Sep 2026 15:04:08 GMT
+Date: Tue, 22 Sep 2026 18:46:19 GMT
 Content-Type: application/json
-Content-Length: 147
+Content-Length: 115
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 8
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
 Connection: close
 
-{"detail":"cannot list items while the restaurant is inactive","status":409,"title":"Restaurant is inactive","type":"/errors/restaurant-inactive"}
+{"detail":"budget cap is 50000 paise","status":422,"title":"Price Exceeds Cap","type":"/errors/price-exceeds-cap"}
+
+
+### 20. Missing resource - 404
+
+$ curl -i http://localhost:8080/menu-items/555
+
+HTTP/1.1 404 NOT FOUND
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:46:36 GMT
+Content-Type: application/json
+Content-Length: 100
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 10
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: public, max-age=60
+Connection: close
+
+{"detail":"No menu item 555","status":404,"title":"Item Not Found","type":"/errors/item-not-found"}
+
+
+### 21. Unsupported Accept header - 406
+
+$ curl -i http://localhost:8080/menu-items/1 \
+  -H "Accept: text/html"
+
+HTTP/1.1 406 NOT ACCEPTABLE
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:46:47 GMT
+Content-Type: application/json
+Content-Length: 118
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 10
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: public, max-age=60
+Connection: close
+
+{"detail":"only application/json is supported","status":406,"title":"Not Acceptable","type":"/errors/not-acceptable"}
+
+
+### 22. Rate limit exceeded - 429
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Bad Item","price":-5}'
+
+HTTP/1.1 429 TOO MANY REQUESTS
+Server: Werkzeug/3.1.8 Python/3.14.6
+Date: Tue, 22 Sep 2026 18:45:48 GMT
+Content-Type: application/json
+Content-Length: 109
+Retry-After: 60
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Accept, Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-HTTP-Method-Override
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Cache-Control: no-store
+Connection: close
+
+{"detail":"per-client request limit exceeded","status":429,"title":"Rate Limit","type":"/errors/rate-limit"}
+
+
+============================================================
+END OF API CALLS AND RESPONSES
+============================================================
