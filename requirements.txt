@@ -1,2 +1,4 @@
-Flask>=3.0,<4
-pytest>=8,<10
+flask
+requests
+pytest
+openapi-spec-validator

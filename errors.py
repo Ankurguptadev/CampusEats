@@ -1,36 +1,35 @@
-# from flask import jsonify
 
-# TITLES = {
-#     "invalid-request": "Invalid request",
-#     "restaurant-not-found": "Restaurant not found",
-#     "item-not-found": "Menu item not found",
-#     "duplicate-item": "Menu item already exists",
-#     "price-exceeds-cap": "Price exceeds tier cap",
-#     "restaurant-inactive": "Restaurant is inactive",
-# }
+from flask import jsonify, request
 
+TITLES = {
+    "empty-cart": "Empty cart",
+    "item-unavailable": "Item unavailable",
+    "payment-declined": "Payment declined",
+    "order-not-found": "Order not found",
+    "illegal-transition": "Illegal transition",
+    "validation-failed": "Validation failed",
+    "invalid-request": "Invalid request",
+    "not-acceptable": "Not acceptable",
+    "internal-error": "Internal server error",
+    "rate-limit": "Too many requests",
+}
 
-# def problem(status, code, detail="", errors=None):
-#     body = {
-#         "type": f"/errors/{code}",
-#         "title": TITLES[code],
-#         "status": status,
-#         "detail": detail,
-#     }
-#     if errors:
-#         body["errors"] = errors
-#     return jsonify(body), status
-
-
-from flask import jsonify
-
-def problem(status, title, detail="", errors=None):
+def problem(status, code, detail="", errors=None):
     body = {
-        "type": f"/errors/{title}",
-        "title": title.replace("-", " ").title(),
+        "type": f"/errors/{code}",
+        "title": TITLES.get(code, code.replace("-", " ").title()),
         "status": status,
         "detail": detail,
     }
-    if errors:
+
+    if errors is not None:
         body["errors"] = errors
-    return jsonify(body), status
+
+    response = jsonify(body)
+    response.status_code = status
+    response.headers["Content-Type"] = "application/problem+json; charset=utf-8"
+
+    if status in (429, 503):
+        response.headers["Retry-After"] = "60"
+
+    return response

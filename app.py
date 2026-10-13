@@ -1,117 +1,3 @@
-# from flask import Flask, request, jsonify
-# import store
-# from errors import problem
-# from models import TIER_CAPS
-# from payments_client import verify_merchant_with_retry
-
-# app = Flask(__name__)
-# store.seed()
-
-
-# def validate_new_item(body):
-#     errors = []
-#     name = body.get("name")
-#     if not isinstance(name, str) or not name.strip():
-#         errors.append(["name", "required non-empty string"])
-#     price = body.get("price")
-#     if not isinstance(price, int) or price <= 0:
-#         errors.append(["price", "positive integer, in paise"])
-#     return errors
-
-
-# def validate_availability(body):
-#     errors = []
-#     if not isinstance(body.get("available"), bool):
-#         errors.append(["available", "required boolean"])
-#     return errors
-
-
-# @app.get("/")
-# def home():
-#     return jsonify({"message": "Restaurant API is running!"}), 200
-
-# @app.get("/restaurants")
-# def list_restaurants():
-#     area = request.args.get("area")
-#     if area is not None and not area.strip():
-#         return problem(400, "invalid-request", "area must not be blank")
-#     items = store.list_restaurants(area)
-#     return jsonify([r.as_json() for r in items]), 200
-
-
-# @app.get("/restaurants/<int:rid>/menu-items")
-# def get_menu(rid):
-#     r = store.find_restaurant(rid)
-#     if r is None:
-#         return problem(404, "restaurant-not-found", f"No restaurant {rid}")
-#     items = store.list_items_for_restaurant(rid)
-#     return jsonify([m.as_json() for m in items]), 200
-
-
-# @app.get("/menu-items/<int:iid>")
-# def get_item(iid):
-#     m = store.find_item(iid)
-#     if m is None:
-#         return problem(404, "item-not-found", f"No menu item {iid}")
-#     return jsonify(m.as_json()), 200
-
-
-# @app.post("/restaurants/<int:rid>/menu-items")
-# def add_menu_item(rid):
-#     restaurant = store.find_restaurant(rid)
-#     if restaurant is None:
-#         return problem(404, "restaurant-not-found", f"No restaurant {rid}")
-
-#     body = request.get_json(silent=True) or {}
-#     errs = validate_new_item(body)          # 1. bad message
-#     if errs:
-#         return problem(400, "invalid-request", errors=errs)
-
-#     key = request.headers.get("Idempotency-Key")
-#     if key:                                  # 2. already done?
-#         prior = store.find_item_by_key(key)
-#         if prior:
-#             return jsonify(prior.as_json()), 200
-
-#     if store.item_name_exists(rid, body["name"]):   # 3. state conflict
-#         return problem(409, "duplicate-item", f"{body['name']} already on this menu")
-
-#     cap = TIER_CAPS[restaurant.tier]                # 4. domain refuses a valid request
-#     if body["price"] > cap:
-#         return problem(422, "price-exceeds-cap", f"{restaurant.tier} cap is {cap} paise")
-
-#     verified = verify_merchant_with_retry(rid)       # 5. the outbound call, hardened
-#     # Payments unreachable -> verified is False. We degrade (see NOTES.md D3):
-#     # the item is still created; merchant_verified stays internal, never exposed.
-
-#     cost_price = int(body["price"] * 0.6)            # invented internal cost figure
-#     item = store.create_item(rid, body["name"], body["price"], cost_price, verified, key)
-#     return jsonify(item.as_json()), 201, {"Location": f"/menu-items/{item.id}"}
-
-
-# @app.post("/menu-items/<int:iid>/availability")
-# def set_availability(iid):
-#     item = store.find_item(iid)
-#     if item is None:
-#         return problem(404, "item-not-found", f"No menu item {iid}")
-
-#     body = request.get_json(silent=True) or {}
-#     errs = validate_availability(body)
-#     if errs:
-#         return problem(400, "invalid-request", errors=errs)
-
-#     wants_available = body["available"]
-#     restaurant = store.find_restaurant(item.restaurant_id)
-#     if wants_available and not restaurant.active:
-#         return problem(409, "restaurant-inactive", "cannot list items while the restaurant is inactive")
-
-#     item.available = wants_available
-#     return jsonify(item.as_json()), 200
-
-
-# if __name__ == "__main__":
-#     app.run(port=8080)
-
 from flask import Flask, request, jsonify, make_response
 import hashlib
 import json
@@ -121,6 +7,9 @@ import store
 from errors import problem
 from models import TIER_CAPS
 from payments_client import verify_merchant_with_retry
+import logging
+from xml.sax.saxutils import escape
+
 
 app = Flask(__name__)
 store.seed()
@@ -144,21 +33,30 @@ def auth_required(fn):
         return fn(*args, **kwargs)
     return wrapped
 
+
 @app.before_request
 def common_request_checks():
     if request.method == "OPTIONS":
         return None
+
     if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
         key = client_id()
         used = _rate.get(key, 0)
+
         if used >= RATE_LIMIT:
-            response = problem(429, "rate-limit", "per-client request limit exceeded")
-            response[0].headers["Retry-After"] = "60"
+            response = problem(
+                429, "rate-limit", "Request limit exceeded"
+            )
+            response.headers["Retry-After"] = "60"
             return response
+
         _rate[key] = used + 1
+
 
 @app.after_request
 def common_headers(response):
+    if request.blueprint == "orders":
+         return response
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Strict-Transport-Security"] = "max-age=31536000"
     response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT)
@@ -172,7 +70,14 @@ def common_headers(response):
     else:
         response.headers.setdefault("Cache-Control", "no-store")
     if response.is_json:
-        response.headers["Content-Type"] = "application/json"
+        if response.status_code >= 400:
+            response.headers.setdefault(
+            "Content-Type",
+            "application/problem+json; charset=utf-8"
+            )
+        else:
+            response.headers["Content-Type"] = (
+            "application/json; charset=utf-8")
         if "gzip" in request.headers.get("Accept-Encoding", ""):
             data = response.get_data()
             if len(data) >= 100:
@@ -385,6 +290,176 @@ def options_response(allow):
     response = make_response("", 204)
     response.headers["Allow"] = allow
     return response
+
+
+orders = {}
+next_order_id = 1
+
+logging.basicConfig(level=logging.INFO)
+
+
+def order_response(order, status=200):
+    accept = request.headers.get("Accept", "application/json")
+
+    if "application/xml" in accept and (
+        "application/json" not in accept and "*/*" not in accept
+    ):
+        items = "".join(
+            f'<item><id>{i["id"]}</id><qty>{i["qty"]}</qty></item>'
+            for i in order["items"]
+        )
+        xml = (
+            f'<order><id>{order["id"]}</id>'
+            f'<status>{escape(order["status"])}</status>'
+            f'<address>{escape(order["address"])}</address>'
+            f'<items>{items}</items></order>'
+        )
+        response = make_response(xml, status)
+        response.headers["Content-Type"] = "application/xml; charset=utf-8"
+        return response
+
+    if "application/json" not in accept and "*/*" not in accept:
+        return problem(406, "not-acceptable", "Use JSON or XML")
+
+    response = jsonify(order)
+    response.status_code = status
+    response.headers["Content-Type"] = "application/json; charset=utf-8"
+    return response
+
+
+def validate_order(body):
+    errors = []
+
+    if not isinstance(body, dict):
+        return [{"field": "body", "msg": "must be a JSON object"}]
+
+    items = body.get("items")
+    if not isinstance(items, list) or not items:
+        errors.append({"field": "items", "msg": "must be non-empty"})
+    else:
+        for index, item in enumerate(items):
+            if not isinstance(item, dict):
+                errors.append({
+                    "field": f"items[{index}]",
+                    "msg": "must be an object"
+                })
+                continue
+
+            if not isinstance(item.get("id"), int) or isinstance(
+                item.get("id"), bool
+            ):
+                errors.append({
+                    "field": f"items[{index}].id",
+                    "msg": "must be an integer"
+                })
+
+            qty = item.get("qty")
+            if not isinstance(qty, int) or isinstance(qty, bool) or qty < 1:
+                errors.append({
+                    "field": f"items[{index}].qty",
+                    "msg": "must be an integer >= 1"
+                })
+
+    address = body.get("address")
+    if not isinstance(address, str) or not address.strip():
+        errors.append({"field": "address", "msg": "required"})
+
+    return errors
+
+
+@app.route("/orders", methods=["POST"])
+def create_order():
+    global next_order_id
+
+    accept = request.headers.get("Accept", "application/json")
+    if "application/xml" not in accept and (
+        "application/json" not in accept and "*/*" not in accept
+    ):
+        return problem(406, "not-acceptable", "Use JSON or XML")
+
+    body = request.get_json(silent=True)
+    if body is None:
+        body = {}
+
+    errors = validate_order(body)
+    if errors:
+        code = (
+            "empty-cart"
+            if isinstance(body, dict)
+            and body.get("items") == []
+            else "validation-failed"
+        )
+        response = problem(422, code, "Correct the invalid fields", errors)
+        return response
+
+    try:
+        order = {
+            "id": next_order_id,
+            "items": body["items"],
+            "address": body["address"].strip(),
+            "status": "draft"
+        }
+        orders[next_order_id] = order
+        next_order_id += 1
+
+        response = order_response(order, 201)
+        response.headers["Location"] = f"/orders/{order['id']}"
+        return response
+    except Exception:
+        logging.exception("Failed to create order")
+        return problem(500, "internal-error", "Could not create order")
+
+
+@app.route("/orders/<int:order_id>", methods=["GET"])
+def get_order(order_id):
+    order = orders.get(order_id)
+    if order is None:
+        return problem(404, "order-not-found", "Order does not exist")
+
+    return order_response(order)
+
+
+@app.route("/orders/<int:order_id>", methods=["PATCH"])
+def update_order(order_id):
+    order = orders.get(order_id)
+    if order is None:
+        return problem(404, "order-not-found", "Order does not exist")
+
+    body = request.get_json(silent=True) or {}
+    new_status = body.get("status")
+
+    allowed = {
+        "draft": {"placed", "cancelled"},
+        "placed": {"preparing", "cancelled"},
+        "preparing": {"delivered"},
+        "delivered": set(),
+        "cancelled": set()
+    }
+
+    if new_status not in allowed.get(order["status"], set()):
+        return problem(
+            409, "illegal-transition",
+            f"Cannot change {order['status']} to {new_status}"
+        )
+
+    order["status"] = new_status
+    return order_response(order)
+
+
+@app.route("/orders/<int:order_id>", methods=["DELETE"])
+def delete_order(order_id):
+    order = orders.get(order_id)
+    if order is None:
+        return problem(404, "order-not-found", "Order does not exist")
+
+    if order["status"] != "draft":
+        return problem(
+            409, "illegal-transition", "Only draft orders can be cancelled"
+        )
+
+    del orders[order_id]
+    return make_response("", 204)
+
 
 if __name__ == "__main__":
     app.run(port=8080)

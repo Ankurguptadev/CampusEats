@@ -1,0 +1,210 @@
+============================================================
+API CALLS AND RESPONSES — ASSIGNMENT 6
+============================================================
+
+### 1. Invalid order: quantity is zero and address is missing — 422
+
+$ curl -i -X POST http://localhost:8080/orders \
+  -H 'Content-Type: application/json' \
+  -d '{"items":[{"id":7,"qty":0}]}'
+
+HTTP/1.1 422 UNPROCESSABLE ENTITY
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 221
+Cache-Control: no-store
+
+{"detail":"Correct the invalid fields","errors":[{"field":"items[0].qty","msg":"must be an integer >= 1"},{"field":"address","msg":"required"}],"status":422,"title":"Validation failed","type":"/errors/validation-failed"}
+
+
+### 2. Create order — 201 with Location header
+
+$ curl -i -X POST http://localhost:8080/orders \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"items":[{"id":7,"qty":2}],"address":"Hostel A"}'
+
+HTTP/1.1 201 CREATED
+Content-Type: application/json; charset=utf-8
+Content-Length: 74
+Location: /orders/2
+Cache-Control: no-store
+
+{"address":"Hostel A","id":2,"items":[{"id":7,"qty":2}],"status":"draft"}
+
+
+### 3. Rate limit exceeded — 429 with Retry-After
+
+$ curl -i -X POST http://localhost:8080/orders \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"items":[{"id":7,"qty":2}],"address":"Hostel A"}'
+
+HTTP/1.1 429 TOO MANY REQUESTS
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 105
+Retry-After: 60
+Cache-Control: no-store
+
+{"detail":"Request limit exceeded","status":429,"title":"Too many requests","type":"/errors/rate-limit"}
+
+
+### 4. PATCH while rate limited — 429
+
+$ curl -i -X PATCH http://localhost:8080/orders/1 \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"status":"placed"}'
+
+HTTP/1.1 429 TOO MANY REQUESTS
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 105
+Retry-After: 60
+Cache-Control: no-store
+
+{"detail":"Request limit exceeded","status":429,"title":"Too many requests","type":"/errors/rate-limit"}
+
+
+### 5. PATCH nonexistent order — 404
+
+$ curl -i -X PATCH http://localhost:8080/orders/1 \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"status":"placed"}'
+
+HTTP/1.1 404 NOT FOUND
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 106
+Cache-Control: no-store
+
+{"detail":"Order does not exist","status":404,"title":"Order not found","type":"/errors/order-not-found"}
+
+
+### 6. GET nonexistent order — 404
+
+$ curl -i http://localhost:8080/orders/1 \
+  -H 'Accept: application/json'
+
+HTTP/1.1 404 NOT FOUND
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 106
+
+{"detail":"Order does not exist","status":404,"title":"Order not found","type":"/errors/order-not-found"}
+
+
+### 7. Create order after rate-limit window/reset — 201
+
+$ curl -i -X POST http://localhost:8080/orders \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"items":[{"id":7,"qty":2}],"address":"Hostel A"}'
+
+HTTP/1.1 201 CREATED
+Content-Type: application/json; charset=utf-8
+Content-Length: 74
+Location: /orders/1
+Cache-Control: no-store
+
+{"address":"Hostel A","id":1,"items":[{"id":7,"qty":2}],"status":"draft"}
+
+
+### 8. Get order — 200
+
+$ curl -i http://localhost:8080/orders/1 \
+  -H 'Accept: application/json'
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 74
+
+{"address":"Hostel A","id":1,"items":[{"id":7,"qty":2}],"status":"draft"}
+
+
+### 9. Update order status — 200
+
+$ curl -i -X PATCH http://localhost:8080/orders/1 \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"status":"placed"}'
+
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 75
+Cache-Control: no-store
+
+{"address":"Hostel A","id":1,"items":[{"id":7,"qty":2}],"status":"placed"}
+
+
+### 10. Create order for DELETE test — 201
+
+$ curl -i -X POST http://localhost:8080/orders \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{"items":[{"id":7,"qty":1}],"address":"Delete Test"}'
+
+HTTP/1.1 201 CREATED
+Content-Type: application/json; charset=utf-8
+Content-Length: 77
+Location: /orders/2
+Cache-Control: no-store
+
+{"address":"Delete Test","id":2,"items":[{"id":7,"qty":1}],"status":"draft"}
+
+
+### 11. Delete order — 204 No Content
+
+$ curl -i -X DELETE http://localhost:8080/orders/2
+
+HTTP/1.1 204 NO CONTENT
+Content-Type: text/html; charset=utf-8
+Cache-Control: no-store
+
+[No response body]
+
+
+### 12. GET deleted order — 404
+
+$ curl -i http://localhost:8080/orders/2 \
+  -H 'Accept: application/json'
+
+HTTP/1.1 404 NOT FOUND
+Content-Type: application/problem+json; charset=utf-8
+Content-Length: 106
+
+{"detail":"Order does not exist","status":404,"title":"Order not found","type":"/errors/order-not-found"}
+
+
+### 13. Assignment 5 idempotency regression reference — first request: 201
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Idempotency-Key: mac-a5-test-001" \
+  -d '{"name":"Idempotency Test","price":1500}'
+
+HTTP/1.1 201 CREATED
+Content-Type: application/json
+Content-Length: 129
+Location: /menu-items/4
+
+{"available":true,"createdAt":"2026-09-22T18:36:01.390443+00:00","id":4,"name":"Idempotency Test","price":1500,"restaurantId":1}
+
+
+### 14. Assignment 5 idempotency regression reference — same request/key: 200
+
+$ curl -i -X POST http://localhost:8080/restaurants/1/menu-items \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Idempotency-Key: mac-a5-test-001" \
+  -d '{"name":"Idempotency Test","price":1500}'
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 129
+
+{"available":true,"createdAt":"2026-09-22T18:36:01.390443+00:00","id":4,"name":"Idempotency Test","price":1500,"restaurantId":1}
+
+============================================================
+END OF API CALLS AND RESPONSES
+============================================================
