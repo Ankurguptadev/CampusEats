@@ -89,9 +89,6 @@ Stores author information:
 
 - `id`: Unique author ID
 - `name`: Author's name
-<<<<<<< HEAD
-=======
-- `country`: Author's country
 
 ### Books Table
 
