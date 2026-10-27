@@ -1,0 +1,302 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #111827;
+  color: #f3f4f6;
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+}
+
+header {
+  padding: 24px 16px;
+  background: #1f2937;
+  text-align: center;
+  border-bottom: 1px solid #374151;
+  animation: fadeIn 0.6s ease-out both;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 30px;
+  color: #60a5fa;
+}
+
+header p {
+  margin: 5px 0 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+main {
+  width: min(900px, 92%);
+  margin: 35px auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  align-items: start;
+  gap: 24px;
+}
+
+.menu-section,
+.add-section {
+  padding: 22px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.menu-section:hover,
+.add-section:hover {
+  border-color: #4b6b91;
+}
+
+.menu-section {
+  animation: fadeIn 0.6s ease-out 0.1s both;
+}
+
+.add-section {
+  animation: fadeIn 0.6s ease-out 0.2s both;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+h2 {
+  margin: 0 0 18px;
+  font-size: 20px;
+  color: #f3f4f6;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+button {
+  padding: 10px 15px;
+  border: 1px solid #60a5fa;
+  border-radius: 5px;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px #00000030;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.dish-list {
+  margin-top: 20px;
+}
+
+.dish-card {
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #374151;
+  animation: slideUp 0.4s ease-out both;
+  transition:
+    background-color 0.25s ease,
+    padding-left 0.25s ease;
+}
+
+.dish-card:hover {
+  background: #263449;
+  padding-left: 10px;
+}
+
+.dish-card:last-child {
+  border-bottom: none;
+}
+
+.dish-card h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.dish-card p {
+  margin: 4px 0 0;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.dish-price {
+  color: #60a5fa;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.availability {
+  display: block;
+  margin-top: 4px;
+  color: #93c5fd;
+  font-size: 12px;
+}
+
+.availability.unavailable {
+  color: #fca5a5;
+}
+
+.empty-state {
+  padding: 20px 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.add-section h2 {
+  margin-bottom: 20px;
+}
+
+form label {
+  display: block;
+  margin: 14px 0 6px;
+  color: #d1d5db;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+form input {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #4b5563;
+  border-radius: 5px;
+  background: #111827;
+  color: #f3f4f6;
+  font: inherit;
+  font-size: 14px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+form input::placeholder {
+  color: #6b7280;
+}
+
+form input:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px #60a5fa25;
+}
+
+form button {
+  width: 100%;
+  margin-top: 20px;
+}
+
+#message {
+  font-size: 13px;
+}
+
+#message:empty {
+  display: none;
+}
+
+#message.success {
+  padding: 9px;
+  border-radius: 5px;
+  background: #163b2a;
+  color: #86efac;
+  animation: fadeIn 0.3s ease-out both;
+}
+
+#message.error {
+  padding: 9px;
+  border-radius: 5px;
+  background: #451f27;
+  color: #fca5a5;
+  animation: fadeIn 0.3s ease-out both;
+}
+
+footer {
+  padding: 18px;
+  color: #9ca3af;
+  font-size: 12px;
+  text-align: center;
+  border-top: 1px solid #374151;
+  animation: fadeIn 0.6s ease-out 0.3s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 650px) {
+  main {
+    grid-template-columns: 1fr;
+    margin: 20px auto;
+    gap: 18px;
+  }
+
+  .menu-section,
+  .add-section {
+    padding: 18px;
+  }
+
+  header h1 {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

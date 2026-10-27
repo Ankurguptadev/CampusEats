@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CampusEats</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>CampusEats</h1>
+      <p>Simple food ordering for campus life</p>
+    </header>
+
+    <main>
+      <section class="menu-section">
+        <div class="section-header">
+          <h2>Available Dishes</h2>
+          <button id="refresh-button" type="button">Refresh</button>
+        </div>
+
+        <p id="message" role="status"></p>
+
+        <div id="dish-list" class="dish-list">Loading dishes...</div>
+      </section>
+
+      <section class="add-section">
+        <h2>Add a Dish</h2>
+
+        <form id="dish-form">
+          <label for="dish-name">Dish Name</label>
+          <input
+            type="text"
+            id="dish-name"
+            name="name"
+            placeholder="e.g. Paneer Roll"
+            required
+          />
+
+          <label for="dish-price">Price (₹)</label>
+          <input
+            type="number"
+            id="dish-price"
+            name="price"
+            min="0.01"
+            step="0.01"
+            placeholder="90"
+            required
+          />
+          <button type="submit" id="submit-button">Add Dish</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+# schema.graphql -- CampusEats Menu API
+# "!" means NON-NULL: on an output field the value is always there;
+# on an input field the client MUST send it.
+
+"A dish on a CampusEats menu."
+type Dish {
+  id: ID!
+  name: String!
+  "Price in rupees"
+  price: Int!
+  available: Boolean!
+}
+
+"What a client sends to add a dish. 'available' may be skipped (it defaults to true)."
+input AddDishInput {
+  name: String!
+  price: Int!
+  available: Boolean
+}
+
+type Query {
+  "List dishes. Pass available: true/false to filter, or leave it out to get everything."
+  dishes(available: Boolean): [Dish!]!
+  "One dish by id (null if there is no such dish)."
+  dish(id: ID!): Dish
+}
+
+type Mutation {
+  addDish(input: AddDishInput!): Dish!
+}

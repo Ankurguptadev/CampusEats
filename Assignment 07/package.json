@@ -1,0 +1,19 @@
+{
+  "name": "campuseats-graphql",
+  "version": "1.0.0",
+  "description": "CampusEats Menu service exposed through GraphQL (Apollo Server + MySQL)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/server": "^5.5.1",
+    "dotenv": "^18.0.9",
+    "graphql": "^16.14.2",
+    "mysql2": "^3.24.6"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
