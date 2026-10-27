@@ -1,218 +1,10 @@
-# openapi: 3.0.3
-# info:
-#   title: CampusEats Catalogue
-#   version: "1.0.0"
-#   description: Manages restaurants, their menu items, and item availability.
-# servers:
-#   - url: http://localhost:8080
-#   - url: https://api.campuseats.dev
-
-# paths:
-#   /restaurants:
-#     get:
-#       summary: List restaurants, optionally filtered by area
-#       parameters:
-#         - in: query
-#           name: area
-#           required: false
-#           schema: { type: string }
-#       responses:
-#         "200":
-#           description: A list of restaurants
-#           content:
-#             application/json:
-#               schema:
-#                 type: array
-#                 items: { $ref: "#/components/schemas/Restaurant" }
-#         "400":
-#           description: area was present but blank
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-
-#   /restaurants/{restaurantId}/menu-items:
-#     get:
-#       summary: Get a restaurant's menu
-#       parameters:
-#         - in: path
-#           name: restaurantId
-#           required: true
-#           schema: { type: integer }
-#       responses:
-#         "200":
-#           description: Menu items for this restaurant
-#           content:
-#             application/json:
-#               schema:
-#                 type: array
-#                 items: { $ref: "#/components/schemas/MenuItem" }
-#         "404":
-#           description: Restaurant not found
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-#     post:
-#       summary: Add a menu item to a restaurant
-#       parameters:
-#         - in: path
-#           name: restaurantId
-#           required: true
-#           schema: { type: integer }
-#         - in: header
-#           name: Idempotency-Key
-#           required: false
-#           schema: { type: string }
-#       requestBody:
-#         required: true
-#         content:
-#           application/json:
-#             schema: { $ref: "#/components/schemas/NewMenuItem" }
-#       responses:
-#         "201":
-#           description: Menu item created
-#           headers:
-#             Location:
-#               schema: { type: string }
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/MenuItem" }
-#         "200":
-#           description: Same Idempotency-Key seen before — original item returned
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/MenuItem" }
-#         "400":
-#           description: Invalid request body
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-#         "404":
-#           description: Restaurant not found
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-#         "409":
-#           description: A menu item with this name already exists on this menu
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-#         "422":
-#           description: Price exceeds the restaurant's tier cap
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-
-#   /menu-items/{id}:
-#     get:
-#       summary: Read one menu item
-#       parameters:
-#         - in: path
-#           name: id
-#           required: true
-#           schema: { type: integer }
-#       responses:
-#         "200":
-#           description: The menu item
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/MenuItem" }
-#         "404":
-#           description: Menu item not found
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-
-#   /menu-items/{id}/availability:
-#     post:
-#       summary: Change a menu item's availability
-#       parameters:
-#         - in: path
-#           name: id
-#           required: true
-#           schema: { type: integer }
-#       requestBody:
-#         required: true
-#         content:
-#           application/json:
-#             schema: { $ref: "#/components/schemas/AvailabilityUpdate" }
-#       responses:
-#         "200":
-#           description: Availability updated
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/MenuItem" }
-#         "400":
-#           description: Invalid request body
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-#         "404":
-#           description: Menu item not found
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-#         "409":
-#           description: Restaurant is inactive; cannot mark an item available
-#           content:
-#             application/json:
-#               schema: { $ref: "#/components/schemas/Problem" }
-
-# components:
-#   schemas:
-#     Restaurant:
-#       type: object
-#       properties:
-#         id: { type: integer }
-#         name: { type: string }
-#         area: { type: string }
-#         tier: { type: string, enum: [budget, premium] }
-#         active: { type: boolean }
-
-#     NewMenuItem:
-#       type: object
-#       required: [name, price]
-#       properties:
-#         name: { type: string }
-#         price:
-#           type: integer
-#           minimum: 1
-#           description: price in paise, integer only
-
-#     MenuItem:
-#       type: object
-#       properties:
-#         id: { type: integer }
-#         restaurantId: { type: integer }
-#         name: { type: string }
-#         price: { type: integer }
-#         available: { type: boolean }
-#         createdAt: { type: string, format: date-time }
-
-#     AvailabilityUpdate:
-#       type: object
-#       required: [available]
-#       properties:
-#         available: { type: boolean }
-
-#     Problem:
-#       type: object
-#       properties:
-#         type: { type: string }
-#         title: { type: string }
-#         status: { type: integer }
-#         detail: { type: string }
-#         errors:
-#           type: array
-#           items:
-#             type: array
-#             items: { type: string }
-
 
 openapi: 3.0.3
 info:
-  title: CampusEats Catalogue
-  version: "2.0.0"
-  description: Assignment 5 continuation of the Assignment 4 Catalogue Service.
+  title: CampusEats API
+  version: "3.0.0"
+  description: Assignment 6 continuation of the CampusEats Catalogue Service.
+
 servers:
   - url: http://localhost:8080
   - url: https://api.campuseats.dev
@@ -222,195 +14,629 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+
   schemas:
     Restaurant:
       type: object
       properties:
-        id: {type: integer}
-        name: {type: string}
-        area: {type: string}
-        tier: {type: string, enum: [budget, premium]}
-        active: {type: boolean}
+        id:
+          type: integer
+        name:
+          type: string
+        area:
+          type: string
+        tier:
+          type: string
+          enum: [budget, premium]
+        active:
+          type: boolean
+
     NewMenuItem:
       type: object
       required: [name, price]
       properties:
-        name: {type: string}
-        price: {type: integer, minimum: 1}
+        name:
+          type: string
+        price:
+          type: integer
+          minimum: 1
+
     MenuItem:
       type: object
       properties:
-        id: {type: integer}
-        restaurantId: {type: integer}
-        name: {type: string}
-        price: {type: integer}
-        available: {type: boolean}
-        createdAt: {type: string, format: date-time}
+        id:
+          type: integer
+        restaurantId:
+          type: integer
+        name:
+          type: string
+        price:
+          type: integer
+        available:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
     PatchMenuItem:
       type: object
       minProperties: 1
       properties:
-        name: {type: string}
-        price: {type: integer, minimum: 1}
-        available: {type: boolean}
+        name:
+          type: string
+        price:
+          type: integer
+          minimum: 1
+        available:
+          type: boolean
+
     AvailabilityUpdate:
       type: object
       required: [available]
       properties:
-        available: {type: boolean}
+        available:
+          type: boolean
+
     Problem:
       type: object
+      required: [type, title, status, detail]
       properties:
-        type: {type: string}
-        title: {type: string}
-        status: {type: integer}
-        detail: {type: string}
+        type:
+          type: string
+          example: /errors/order-not-found
+        title:
+          type: string
+          example: Order not found
+        status:
+          type: integer
+          example: 404
+        detail:
+          type: string
+          example: Order does not exist
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, msg]
+            properties:
+              field:
+                type: string
+              msg:
+                type: string
+
+    OrderRequest:
+      type: object
+      required: [items, address]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [id, qty]
+            properties:
+              id:
+                type: integer
+              qty:
+                type: integer
+                minimum: 1
+        address:
+          type: string
+          minLength: 1
+
+    Order:
+      type: object
+      required: [id, items, address, status]
+      properties:
+        id:
+          type: integer
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, qty]
+            properties:
+              id:
+                type: integer
+              qty:
+                type: integer
+                minimum: 1
+        address:
+          type: string
+        status:
+          type: string
+          enum: [draft, placed, preparing, delivered, cancelled]
+
+  responses:
+    ProblemResponse:
+      description: Problem Details error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: string
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+    ServiceUnavailable:
+      description: Temporary service failure
+      headers:
+        Retry-After:
+          schema:
+            type: string
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
 
 paths:
   /restaurants:
     get:
       summary: List restaurants with filter, sort and pagination
       parameters:
-        - {in: query, name: area, schema: {type: string}}
-        - {in: query, name: page, schema: {type: integer, minimum: 1, default: 1}}
-        - {in: query, name: limit, schema: {type: integer, minimum: 1, maximum: 50, default: 10}}
-        - {in: query, name: sort, schema: {type: string, enum: [id, name, area, tier]}}
-        - {in: query, name: order, schema: {type: string, enum: [asc, desc], default: asc}}
+        - in: query
+          name: area
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [id, name, area, tier]
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
       responses:
         "200":
           description: Restaurant list
           headers:
-            Cache-Control: {schema: {type: string}}
-            X-RateLimit-Limit: {schema: {type: integer}}
-            X-RateLimit-Remaining: {schema: {type: integer}}
+            Cache-Control:
+              schema:
+                type: string
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
           content:
             application/json:
-              schema: {type: array, items: {$ref: "#/components/schemas/Restaurant"}}
-        "400": {description: Invalid query, content: {application/json: {schema: {$ref: "#/components/schemas/Problem"}}}}
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Restaurant"
+        "400":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 
   /restaurants/{restaurantId}/menu-items:
     get:
       summary: Read a restaurant menu
       parameters:
-        - {in: path, name: restaurantId, required: true, schema: {type: integer}}
-        - {in: query, name: page, schema: {type: integer, minimum: 1, default: 1}}
-        - {in: query, name: limit, schema: {type: integer, minimum: 1, maximum: 50, default: 10}}
-        - {in: query, name: sort, schema: {type: string, enum: [id, name, price]}}
-        - {in: query, name: order, schema: {type: string, enum: [asc, desc], default: asc}}
+        - in: path
+          name: restaurantId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [id, name, price]
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
       responses:
         "200":
           description: Menu
           content:
             application/json:
-              schema: {type: array, items: {$ref: "#/components/schemas/MenuItem"}}
-        "404": {description: Restaurant not found}
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MenuItem"
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
     post:
       summary: Create a menu item
-      security: [{bearerAuth: []}]
+      security:
+        - bearerAuth: []
       parameters:
-        - {in: path, name: restaurantId, required: true, schema: {type: integer}}
-        - {in: header, name: Idempotency-Key, schema: {type: string}}
+        - in: path
+          name: restaurantId
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: Idempotency-Key
+          schema:
+            type: string
       requestBody:
         required: true
         content:
-          application/json: {schema: {$ref: "#/components/schemas/NewMenuItem"}}
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMenuItem"
       responses:
         "201":
           description: Created
           headers:
-            Location: {schema: {type: string}}
+            Location:
+              schema:
+                type: string
           content:
-            application/json: {schema: {$ref: "#/components/schemas/MenuItem"}}
-        "200": {description: Repeated Idempotency-Key}
-        "400": {description: Bad request}
-        "401": {description: Unauthorized}
-        "404": {description: Restaurant not found}
-        "409": {description: Duplicate item}
-        "422": {description: Tier price rule rejected}
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuItem"
+        "200":
+          description: Repeated Idempotency-Key
+        "400":
+          $ref: "#/components/responses/ProblemResponse"
+        "401":
+          $ref: "#/components/responses/ProblemResponse"
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "409":
+          $ref: "#/components/responses/ProblemResponse"
+        "422":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
 
   /menu-items/{id}:
     get:
       summary: Read one menu item
       parameters:
-        - {in: path, name: id, required: true, schema: {type: integer}}
-        - {in: header, name: If-None-Match, schema: {type: string}}
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: If-None-Match
+          schema:
+            type: string
       responses:
         "200":
           description: Menu item
           headers:
-            ETag: {schema: {type: string}}
+            ETag:
+              schema:
+                type: string
           content:
-            application/json: {schema: {$ref: "#/components/schemas/MenuItem"}}
-        "304": {description: Not modified}
-        "404": {description: Not found}
-        "406": {description: Not acceptable}
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuItem"
+        "304":
+          description: Not modified
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "406":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
     put:
       summary: Replace a menu item
-      security: [{bearerAuth: []}]
+      security:
+        - bearerAuth: []
       parameters:
-        - {in: path, name: id, required: true, schema: {type: integer}}
-        - {in: header, name: If-Match, required: true, schema: {type: string}}
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
-          application/json: {schema: {$ref: "#/components/schemas/NewMenuItem"}}
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMenuItem"
       responses:
-        "200": {description: Updated}
-        "400": {description: Invalid request}
-        "401": {description: Unauthorized}
-        "404": {description: Not found}
-        "409": {description: Duplicate}
-        "412": {description: Stale ETag}
-        "422": {description: Tier cap}
+        "200":
+          description: Updated
+        "400":
+          $ref: "#/components/responses/ProblemResponse"
+        "401":
+          $ref: "#/components/responses/ProblemResponse"
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "409":
+          $ref: "#/components/responses/ProblemResponse"
+        "412":
+          $ref: "#/components/responses/ProblemResponse"
+        "422":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
     patch:
       summary: Partially modify a menu item
-      security: [{bearerAuth: []}]
+      security:
+        - bearerAuth: []
       parameters:
-        - {in: path, name: id, required: true, schema: {type: integer}}
-        - {in: header, name: If-Match, required: true, schema: {type: string}}
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
-          application/json: {schema: {$ref: "#/components/schemas/PatchMenuItem"}}
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchMenuItem"
       responses:
-        "200": {description: Updated}
-        "400": {description: Invalid request}
-        "401": {description: Unauthorized}
-        "404": {description: Not found}
-        "409": {description: Conflict}
-        "412": {description: Stale ETag}
-        "422": {description: Tier cap}
+        "200":
+          description: Updated
+        "400":
+          $ref: "#/components/responses/ProblemResponse"
+        "401":
+          $ref: "#/components/responses/ProblemResponse"
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "409":
+          $ref: "#/components/responses/ProblemResponse"
+        "412":
+          $ref: "#/components/responses/ProblemResponse"
+        "422":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
     delete:
       summary: Delete a menu item
-      security: [{bearerAuth: []}]
+      security:
+        - bearerAuth: []
       parameters:
-        - {in: path, name: id, required: true, schema: {type: integer}}
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
       responses:
-        "204": {description: Deleted}
-        "401": {description: Unauthorized}
-        "404": {description: Not found}
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/ProblemResponse"
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
     options:
       summary: Discover methods
       responses:
         "204":
           description: Allowed methods
           headers:
-            Allow: {schema: {type: string}}
-            Access-Control-Allow-Origin: {schema: {type: string}}
+            Allow:
+              schema:
+                type: string
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
 
   /menu-items/{id}/availability:
     post:
       summary: Change menu item availability
-      security: [{bearerAuth: []}]
+      security:
+        - bearerAuth: []
       parameters:
-        - {in: path, name: id, required: true, schema: {type: integer}}
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
-          application/json: {schema: {$ref: "#/components/schemas/AvailabilityUpdate"}}
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AvailabilityUpdate"
       responses:
-        "200": {description: Updated}
-        "400": {description: Invalid request}
-        "401": {description: Unauthorized}
-        "404": {description: Not found}
-        "409": {description: Inactive restaurant}
+        "200":
+          description: Updated
+        "400":
+          $ref: "#/components/responses/ProblemResponse"
+        "401":
+          $ref: "#/components/responses/ProblemResponse"
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "409":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /orders:
+    post:
+      summary: Create an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequest"
+      responses:
+        "201":
+          description: Order created
+          headers:
+            Location:
+              description: URI of the created order
+              schema:
+                type: string
+                example: /orders/1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+            application/xml:
+              schema:
+                type: string
+        "406":
+          $ref: "#/components/responses/ProblemResponse"
+        "422":
+          description: Empty cart or invalid fields
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/ProblemResponse"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /orders/{orderId}:
+    parameters:
+      - in: path
+        name: orderId
+        required: true
+        schema:
+          type: integer
+
+    get:
+      summary: Get an order
+      parameters:
+        - in: header
+          name: Accept
+          schema:
+            type: string
+            enum: [application/json, application/xml]
+      responses:
+        "200":
+          description: Order found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+            application/xml:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "406":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+    patch:
+      summary: Change an order status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [placed, preparing, delivered, cancelled]
+      responses:
+        "200":
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+            application/xml:
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "409":
+          $ref: "#/components/responses/ProblemResponse"
+        "406":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+    delete:
+      summary: Delete a draft order
+      responses:
+        "204":
+          description: Draft order deleted; no response body
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+        "409":
+          $ref: "#/components/responses/ProblemResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
