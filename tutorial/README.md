@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> a480d05 (Tutorial)
 # Campus Library
 
 A simple library management application built using Node.js, GraphQL, and MySQL.
@@ -89,6 +93,10 @@ Stores author information:
 
 - `id`: Unique author ID
 - `name`: Author's name
+<<<<<<< HEAD
+=======
+- `country`: Author's country
+>>>>>>> a480d05 (Tutorial)
 
 ### Books Table
 
@@ -103,4 +111,8 @@ One author can have multiple books.
 
 ## License
 
+<<<<<<< HEAD
 This project is intended for educational purposes.
+=======
+This project is intended for educational purposes.
+>>>>>>> a480d05 (Tutorial)

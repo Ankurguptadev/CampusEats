@@ -2,5 +2,8 @@ node_modules/
 .env
 *.log
 .DS_Store
+<<<<<<< HEAD
 __MACOSX/
 /tutorial/
+=======
+>>>>>>> a480d05 (Tutorial)
