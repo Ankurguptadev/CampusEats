@@ -92,7 +92,6 @@ Stores author information:
 <<<<<<< HEAD
 =======
 - `country`: Author's country
->>>>>>> a480d05 (Tutorial)
 
 ### Books Table
 
