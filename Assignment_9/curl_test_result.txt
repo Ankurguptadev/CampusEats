@@ -1,0 +1,168 @@
+CS543 – ASSIGNMENT 9
+
+TEST 1 – ACCESS MENU WITHOUT A TOKEN
+------------------------------------
+Command:
+  curl -i http://localhost:3000/items
+
+Actual result:
+  HTTP/1.1 401 Unauthorized
+
+Response:
+  {"error":"invalid or missing token"}
+
+Status: PASS
+
+Explanation:
+  The GET /items endpoint rejects requests that do not contain a valid
+  Bearer token. This confirms that the route is protected.
+
+
+TEST 2 – CUSTOMER LOGIN
+-----------------------
+Credentials:
+  Email:    xyz123@gmail.com
+  Password: xyz123
+
+Actual result:
+  Login returned a JWT and user information.
+
+Returned user:
+  id:    1
+  email: xyz123@gmail.com
+  role:  customer
+  name:  Customer
+
+Status: PASS
+
+Explanation:
+  The server accepted the valid customer credentials and generated a JWT.
+
+
+TEST 3 – CUSTOMER ACCESSES MENU WITH A VALID TOKEN
+--------------------------------------------------
+Command:
+  curl -i http://localhost:3000/items     -H "Authorization: Bearer <CUSTOMER_TOKEN>"
+
+Actual result:
+  HTTP/1.1 200 OK
+
+Response:
+  [
+    {"id":1,"name":"Veg Thali","price":90,"available":true},
+    {"id":2,"name":"Paneer Roll","price":70,"available":true},
+    {"id":3,"name":"Cold Coffee","price":50,"available":false},
+    {"id":4,"name":"Samosa","price":20,"available":true}
+  ]
+
+Status: PASS
+
+Explanation:
+  An authenticated customer can access the menu.
+
+
+TEST 4A – CUSTOMER ADD REQUEST USING PLACEHOLDER TOKEN
+------------------------------------------------------
+Command used:
+  curl -i -X POST http://localhost:3000/items     
+  -H "Content-Type: application/json"     
+  -H "Authorization: Bearer YOUR_TOKEN"     
+  -d '{"name":"Pizza","price":150,"available":true}'
+
+Actual result:
+  HTTP/1.1 401 Unauthorized
+
+Response:
+  {"error":"invalid or missing token"}
+
+Status: INVALID TEST INPUT – NOT AN APPLICATION FAILURE
+
+Explanation:
+  YOUR_CUSTOMER_TOKEN was a placeholder, not the actual JWT. Therefore,
+  the server correctly rejected the request before checking the user's role.
+
+
+TEST 4B – CUSTOMER TRIES TO ADD A MENU ITEM USING THE REAL TOKEN
+----------------------------------------------------------------
+Command:
+  curl -i -X POST http://localhost:3000/items     -H "Content-Type: application/json"     -H "Authorization: Bearer <CUSTOMER_TOKEN>"     -d '{"name":"Pizza","price":150,"available":true}'
+
+Actual result:
+  HTTP/1.1 403 Forbidden
+
+Response:
+  {"error":"forbidden"}
+
+Status: PASS
+
+Explanation:
+  The customer was authenticated, but the customer's role does not permit
+  adding menu items. This demonstrates role-based authorization.
+
+
+TEST 5 – RESTAURANT OWNER LOGIN
+-------------------------------
+Credentials:
+  Email:    abc@gmail.com
+  Password: abc123
+
+Actual result:
+  Login returned a JWT and user information.
+
+Returned user:
+  id:    2
+  email: abc@gmail.com
+  role:  restaurant
+  name:  MealHub
+
+Status: PASS
+
+Explanation:
+  The server accepted the valid restaurant-owner credentials and generated
+  a JWT containing the restaurant role.
+
+
+TEST 6 – RESTAURANT OWNER ADDS A MENU ITEM
+------------------------------------------
+Command:
+  curl -i -X POST http://localhost:3000/items     -H "Content-Type: application/json"     -H "Authorization: Bearer <RESTAURANT_TOKEN>"     -d '{"name":"Pizza","price":150,"available":true}'
+
+Actual result:
+  HTTP/1.1 201 Created
+
+Response:
+  {"id":5,"name":"Pizza","price":150,"available":true}
+
+Status: PASS
+
+Explanation:
+  The restaurant owner was authorized to add a new menu item. The server
+  created the item with ID 5 and returned HTTP 201 Created.
+
+
+TEST 7 – LOGIN WITH AN INCORRECT PASSWORD
+-----------------------------------------
+Command:
+  curl -i -X POST http://localhost:3000/login     -H "Content-Type: application/json"     -d '{"email":"xyz123@gmail.com","password":"wrongpassword"}'
+
+Actual result:
+  HTTP/1.1 401 Unauthorized
+
+Response:
+  {"error":"bad login"}
+
+Status: PASS
+
+Explanation:
+  The server rejected the incorrect password and did not issue a JWT.
+
+
+FINAL TEST SUMMARY
+------------------
+1. Missing token on GET /items:                 PASS
+2. Customer login:                              PASS
+3. Customer GET /items with valid token:        PASS
+4. Customer POST /items with real token:        PASS
+5. Restaurant owner login:                      PASS
+6. Restaurant owner POST /items:                PASS
+7. Incorrect password:                          PASS

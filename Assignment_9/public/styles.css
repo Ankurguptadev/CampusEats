@@ -1,0 +1,367 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+
+:root {
+  color-scheme: dark;
+  --bg: #10131b;
+  --panel: #191e29;
+  --panel-soft: #202736;
+  --line: #30394b;
+  --text: #f3f5fa;
+  --muted: #9aa5b7;
+  --accent: #9be7c4;
+  --accent-dark: #122b25;
+  --danger: #ff9c9c;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(
+      ellipse at 12% 0%,
+      rgba(89, 120, 165, 0.16),
+      transparent 35%
+    ),
+    radial-gradient(
+      ellipse at 95% 22%,
+      rgba(92, 184, 146, 0.1),
+      transparent 28%
+    ),
+    var(--bg);
+  font-family: "DM Sans", sans-serif;
+}
+button,
+input {
+  font: inherit;
+}
+.topbar {
+  height: 72px;
+  padding: 0 max(5vw, 22px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(16, 19, 27, 0.72);
+  backdrop-filter: blur(12px);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--text);
+  text-decoration: none;
+  font:
+    800 17px "Manrope",
+    sans-serif;
+  letter-spacing: -0.5px;
+}
+.brand-mark {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #14251f;
+  background: var(--accent);
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.session-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+.page-shell {
+  width: min(920px, 90vw);
+  margin: 0 auto;
+}
+.hero {
+  padding: 72px 0 36px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 25px;
+  animation: rise 0.55s ease both;
+}
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+h1 {
+  margin-bottom: 13px;
+  font:
+    800 clamp(34px, 5vw, 53px)/1.12 "Manrope",
+    sans-serif;
+  letter-spacing: -2px;
+}
+h1 span {
+  color: var(--accent);
+}
+.hero-copy {
+  max-width: 490px;
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.hero-chip {
+  flex-shrink: 0;
+  margin-bottom: 8px;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  color: #c5cfdb;
+  font-size: 12px;
+}
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+.panel {
+  margin: 18px 0 30px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(
+    145deg,
+    rgba(31, 39, 54, 0.96),
+    rgba(24, 29, 41, 0.96)
+  );
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.16);
+  animation: rise 0.45s ease both;
+}
+.login-panel {
+  max-width: 480px;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.section-heading h2 {
+  margin: 0;
+  font:
+    700 24px "Manrope",
+    sans-serif;
+  letter-spacing: -0.7px;
+}
+.lock-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--accent);
+  background: var(--accent-dark);
+  font-size: 23px;
+}
+.login-form {
+  display: grid;
+  gap: 15px;
+}
+label {
+  display: grid;
+  gap: 8px;
+  color: #cbd3df;
+  font-size: 12px;
+  font-weight: 600;
+}
+input {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  outline: none;
+  color: var(--text);
+  background: #111722;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(155, 231, 196, 0.1);
+}
+.button {
+  border: 0;
+  border-radius: 9px;
+  padding: 11px 15px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    transform 0.18s,
+    filter 0.18s,
+    background 0.18s;
+}
+.button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+.button:active {
+  transform: translateY(0);
+}
+.button-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #13251f;
+  background: var(--accent);
+}
+.button-quiet {
+  border: 1px solid var(--line);
+  color: #dce3ed;
+  background: var(--panel-soft);
+}
+.hint {
+  margin: 17px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.hint + .hint {
+  margin-top: 7px;
+}
+code {
+  color: var(--accent);
+}
+.hidden {
+  display: none !important;
+}
+.catalogue-heading {
+  margin-bottom: 18px;
+}
+.items-list {
+  display: grid;
+  gap: 10px;
+}
+.item-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 15px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(12, 17, 26, 0.38);
+  animation: fadeIn 0.3s ease both;
+}
+.item-name {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+.item-id {
+  color: var(--muted);
+  font-size: 11px;
+}
+.item-price {
+  color: var(--accent);
+  font-weight: 700;
+}
+.delete-button {
+  margin-left: 12px;
+  border: 0;
+  color: var(--danger);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+}
+.add-form {
+  display: grid;
+  grid-template-columns: 1.5fr 0.8fr auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 25px;
+  padding-top: 23px;
+  border-top: 1px solid var(--line);
+}
+.form-title {
+  grid-column: 1/-1;
+}
+.form-title h3 {
+  margin: 0;
+  font:
+    700 17px "Manrope",
+    sans-serif;
+}
+.notice {
+  margin: 0 0 15px;
+  padding: 11px 13px;
+  border-radius: 9px;
+  color: #c8f7df;
+  background: rgba(75, 160, 119, 0.13);
+  font-size: 12px;
+}
+.notice.error {
+  color: #ffc1c1;
+  background: rgba(190, 70, 70, 0.13);
+}
+footer {
+  padding: 22px 0 35px;
+  color: #667286;
+  text-align: center;
+  font-size: 11px;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (max-width: 620px) {
+  .hero {
+    padding-top: 48px;
+    display: block;
+  }
+  .hero-chip {
+    display: inline-block;
+    margin-top: 22px;
+  }
+  .panel {
+    padding: 21px;
+  }
+  .add-form {
+    grid-template-columns: 1fr;
+  }
+  .form-title {
+    grid-column: auto;
+  }
+  .session-label {
+    max-width: 125px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
